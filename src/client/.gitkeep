@@ -1,0 +1,4 @@
+# Pacote: client
+# Conteúdo futuro (Fase 3):
+#   - GameClient.java       → abre conexão com o servidor e gerencia o loop de jogada
+#   - ConsoleUI.java        → interface textual para o jogador (leitura de stdin)
