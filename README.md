@@ -1,111 +1,126 @@
-# UNO-LP2 - Jogo UNO com servidor multithread
+# 🃏 UNO-LP2 — Clone do Jogo UNO com Servidor Multithreaded
 
-Projeto academico da disciplina de Linguagem de Programacao II.
+> Projeto acadêmico desenvolvido para a disciplina de **Linguagem de Programação II**.  
+> Arquitetura: **Servidor Multithreaded Centralizado** com comunicação via Sockets TCP.
 
-Arquitetura: servidor central com sockets TCP e uma thread por cliente.
+---
 
-## Equipe
+## 👥 Equipe:
 
-- Felipe Jose de Medeiros Melo
-- Felipe Cavalcanti Apolinario
-- Joao Lucas Silva Acioli
-- Jose Artur Soares Abreu
-- Gabriel Rafa Martins Freire
+| Felipe José de Medeiros Melo 
+| Felipe Cavalcanti Apolinário |
+| João Lucas Silva Acioli 
+| Jose Artur Soares Afreu 
+| Gabriel Rafa Martins Freire 
 
-## Objetivo
+---
 
-Implementar um UNO multiplayer em Java, exercitando:
+## 🎯 Objetivos do Projeto
 
-- comunicacao cliente-servidor com sockets;
-- sincronizacao de acesso ao estado da partida;
-- controle de turno e consistencia de estado entre clientes.
+Implementar uma versão multijogador do clássico jogo de cartas **UNO**, explorando na prática os seguintes conceitos da disciplina:
 
-## Estrutura
+- **Comunicação via Sockets** — troca de mensagens entre cliente e servidor via TCP/IP
+- **Sincronização de Threads** — controle de acesso concorrente ao estado do jogo (`synchronized`, `wait/notify`)
+- **Consistência de Estado** — garantia de que todos os clientes enxergam o mesmo estado da partida
+- **Gerência de Tempo** — timeouts de jogada e controle de turno
 
-```text
-uno-lp2/
-    README.md
-    pendencias.md
-    src/
-        client/
-        server/
-        shared/
-        model/
+---
+
+## 🏗️ Arquitetura
+
+```
+Cliente  ──── TCP Socket ────▶  Servidor Central
+Cliente  ──── TCP Socket ────▶  (uma Thread por cliente)
+Cliente  ──── TCP Socket ────▶  (estado da partida compartilhado)
 ```
 
-## Como compilar
+O servidor atua como árbitro central: valida todas as jogadas, mantém o estado da partida e retransmite atualizações para todos os clientes conectados.
 
-Na raiz do projeto:
+---
+
+## 📁 Estrutura do Projeto
+
+```
+uno-lp2/
+├── README.md
+├── .gitignore
+└── src/
+    ├── client/          # Código exclusivo do cliente (UI, envio de comandos)
+    ├── server/          # Código exclusivo do servidor (motor do jogo, threads)
+    ├── shared/          # Protocolo de comunicação (mensagens trafegadas via socket)
+    └── model/           # Modelo de domínio puro (cartas, baralho, estado do jogador)
+```
+
+---
+
+## 🚀 Como Compilar e Executar
+
+> **Requisito:** JDK 11+ instalado. Nenhum gerenciador de dependências necessário (Java puro).
+
+### Compilar tudo de uma vez
 
 ```bash
+# Na raiz do projeto
 find src -name "*.java" -print > sources.txt
 javac -d out @sources.txt
 ```
 
-Se houver incompatibilidade de versao entre compilador e runtime Java no ambiente:
+> Em alguns ambientes pode ser necessário compilar com release explícito:
 
 ```bash
 javac --release 25 -d out @sources.txt
 ```
 
-## Como executar
-
-Servidor:
+### Executar o Servidor
 
 ```bash
 java -cp out server.GameServer <porta> <numero-de-jogadores>
 ```
 
-Exemplo:
+### Executar o Cliente
 
 ```bash
-java -cp out server.GameServer 12345 2
+java -cp out client.GameClient <endereço-do-servidor> <porta> <nome>
 ```
 
-Cliente:
+### Comandos do Cliente
 
-```bash
-java -cp out client.GameClient <host> <porta> <nome>
+```text
+COMPRAR
+JOGAR <COR>:<VALOR> [COR_DECLARADA]
+SAIR
 ```
 
-Exemplo:
+---
 
-```bash
-java -cp out client.GameClient localhost 12345 Alice
-java -cp out client.GameClient localhost 12345 Bob
-```
+## 🗺️ Roadmap de Fases
 
-## Comandos do cliente
+| Fase | Descrição | Status |
+|------|-----------|--------|
+| **Fase 1 — Modelo** | Cartas, Baralho e Estado do Jogador | ✅ Base concluída / ajustes avançados pendentes |
+| **Fase 2 — Servidor** | GameServer, ClientHandler (threads), estado compartilhado | 🔄 Em andamento |
+| **Fase 3 — Cliente** | Conexão ao servidor, loop de jogada, UI textual | 🔄 Em andamento |
+| **Fase 4 — Protocolo** | Mensagens estruturadas, validações e tratamento de erros | 🔄 Em andamento |
 
-- `COMPRAR`
-- `JOGAR <COR>:<VALOR> [COR_DECLARADA]`
-- `SAIR`
+---
 
-Exemplos:
+## 📐 Conceitos Aplicados
 
-- `JOGAR VERMELHO:CINCO`
-- `JOGAR PRETO:CORINGA AZUL`
-- `COMPRAR`
-- `SAIR`
+### Sincronização de Threads
+O estado da partida (`GameState`) é acessado por múltiplas threads de clientes simultaneamente. Usamos blocos `synchronized` e `ReentrantLock` para garantir atomicidade nas operações críticas (jogar carta, comprar carta, passar a vez).
 
-## Estado atual da implementacao
+### Comunicação via Sockets
+Cada cliente abre uma conexão TCP com o servidor. O protocolo é baseado em texto simples (uma mensagem por linha) para facilitar a depuração.
 
-Ja implementado:
+### Gerência de Tempo
+Cada jogador tem um tempo limite por turno. Um `ScheduledExecutorService` no servidor gerencia o timeout e aplica a penalidade automaticamente (comprar cartas) se o jogador não agir a tempo.
 
-- modelo de cartas e baralho padrao;
-- estado da partida com turno, direcao e efeitos principais;
-- validacao de `WILD_DRAW_FOUR` (bloqueia quando ha carta da cor ativa);
-- notificacao de UNO quando jogador fica com 1 carta;
-- tratamento basico de saida/desconexao de jogador;
-- validacao de comandos no cliente antes de enviar ao servidor.
+---
 
-Ainda pendente:
+## ✅ Atualizações Recentes
 
-- timeout de turno com penalizacao automatica;
-- reconexao/reentrada de jogador;
-- refinamento do protocolo de mensagens;
-- testes automatizados de unidade e integracao.
-
-## Observacao
-
-As pendencias detalhadas e a divisao sugerida para os proximos integrantes estao em `pendencias.md`.
+- Validação de `WILD_DRAW_FOUR` no modelo (impede jogada ilegal quando há carta da cor ativa).
+- Notificação de `UNO` quando o jogador fica com 1 carta.
+- Comando `SAIR` com encerramento ordenado do cliente.
+- Tratamento básico de desconexão no servidor.
+- Validação de entrada no cliente antes do envio ao servidor.
