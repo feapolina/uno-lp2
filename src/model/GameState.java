@@ -2,6 +2,7 @@ package model;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
@@ -289,9 +290,7 @@ public final class GameState {
         List<Card> shuffled = new ArrayList<>(discardPile);
         discardPile.clear();
         Collections.shuffle(shuffled, new Random());
-        for (Card card : shuffled) {
-            drawPile.cards.addLast(card);
-        }
+        drawPile.addCardsToBottom(shuffled);
         discardPile.addFirst(top);
     }
 

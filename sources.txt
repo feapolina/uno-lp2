@@ -1,0 +1,12 @@
+src/server/ClientHandler.java
+src/server/GameServer.java
+src/client/AnsiColors.java
+src/client/AnsiFormatter.java
+src/client/GameClient.java
+src/shared/Protocol.java
+src/model/Card.java
+src/model/CardColor.java
+src/model/PlayerState.java
+src/model/CardValue.java
+src/model/Deck.java
+src/model/GameState.java

@@ -169,6 +169,17 @@ public final class Deck {
     }
 
     /**
+     * Adiciona cartas ao fundo do baralho de compra.
+     */
+    public void addCardsToBottom(List<Card> cardsToAdd) {
+        Objects.requireNonNull(cardsToAdd, "cardsToAdd não pode ser nulo.");
+        if (cardsToAdd.contains(null)) {
+            throw new IllegalArgumentException("A lista de cartas não pode conter valores nulos.");
+        }
+        cards.addAll(cardsToAdd);
+    }
+
+    /**
      * Retorna true se não houver mais cartas no baralho central.
      */
     public boolean isEmpty() {
