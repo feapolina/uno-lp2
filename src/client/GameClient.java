@@ -120,6 +120,9 @@ public final class GameClient {
         if (line.startsWith("SUA_VEZ")) {
             return "[green]" + line + "[/green]";
         }
+        if (line.startsWith("TEMPO_ESGOTADO")) {
+            return "[yellow]" + line + "[/yellow]";
+        }
         if (line.startsWith("ATUALIZACAO")) {
             return "[cyan]" + line + "[/cyan]";
         }

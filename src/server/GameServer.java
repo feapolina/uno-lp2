@@ -1,7 +1,9 @@
 package server;
 
+import model.Card;
 import model.GameState;
 import model.PlayerState;
+import shared.Protocol;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,10 +17,15 @@ import java.util.Random;
 
 public final class GameServer {
 
+    public static final int TURN_TIMEOUT_SECONDS = 10;
+
     private final int port;
     private final int expectedPlayers;
     private final List<ClientHandler> handlers;
     private final List<String> playerNames;
+
+    private volatile GameState game;
+    private volatile boolean shuttingDown;
 
     public GameServer(int port, int expectedPlayers) {
         if (expectedPlayers < 2) {
@@ -28,6 +35,7 @@ public final class GameServer {
         this.expectedPlayers = expectedPlayers;
         this.handlers = new ArrayList<>(expectedPlayers);
         this.playerNames = new ArrayList<>(expectedPlayers);
+        this.shuttingDown = false;
     }
 
     public static void main(String[] args) throws IOException {
@@ -48,7 +56,7 @@ public final class GameServer {
                 registerPlayer(socket);
             }
 
-            GameState game = GameState.create(playerNames, new Random());
+            game = GameState.create(playerNames, new Random());
             System.out.println("Todos os jogadores conectados. Iniciando partida...");
 
             for (ClientHandler handler : handlers) {
@@ -62,7 +70,7 @@ public final class GameServer {
             }
 
             broadcast("INICIO_PARTIDA " + String.join(",", playerNames));
-            broadcast("TOPO " + game.getTopCard().getColor() + ":" + game.getTopCard().getValue());
+            broadcastStateToAll();
         }
     }
 
@@ -92,15 +100,67 @@ public final class GameServer {
         }
     }
 
+    public synchronized void broadcastStateToAll() {
+        if (game == null) {
+            return;
+        }
+
+        Card topCard = game.getTopCard();
+        String formattedTop = Protocol.formatCard(topCard);
+        String activeColor = game.getActiveColor().toString();
+        String currentName = game.currentPlayer().getPlayerName();
+
+        for (ClientHandler handler : handlers) {
+            handler.sendLine("TOPO " + formattedTop);
+            handler.sendLine("ATIVA " + activeColor);
+            handler.sendLine("ATUAL " + currentName);
+            handler.sendStateSnapshot();
+        }
+    }
+
+    public synchronized void notifyTurnTimeout(ClientHandler handler) {
+        if (game == null || game.isGameOver() || shuttingDown) {
+            return;
+        }
+
+        try {
+            List<Card> drawn = game.drawCards(handler.getPlayerId(), 1);
+            handler.sendLine("TEMPO_ESGOTADO Você demorou e comprou uma carta: " + Protocol.formatHand(drawn));
+            broadcast("ATUALIZACAO " + handler.getPlayerName() + " estourou o tempo e comprou 1 carta.");
+            broadcastStateToAll();
+        } catch (IllegalStateException ex) {
+            // Se a vez já mudou por outro evento, apenas sincroniza estado.
+            broadcastStateToAll();
+        }
+    }
+
     public synchronized void notifyPlayerLeft(ClientHandler disconnectedHandler, String reason) {
         handlers.remove(disconnectedHandler);
+
         if (reason != null && !reason.isBlank()) {
             System.out.println(reason);
             broadcast("ATUALIZACAO " + reason);
         }
 
+        if (game == null || game.isGameOver()) {
+            return;
+        }
+
         if (handlers.size() < 2) {
-            broadcast("FIM_JOGO_PARTIDA_ENCERRADA Jogadores insuficientes para continuar.");
+            shuttingDown = true;
+            String endMessage = "Partida encerrada: jogadores insuficientes para continuar.";
+            game.abortGame(endMessage);
+            broadcast("FIM_JOGO_PARTIDA_ENCERRADA " + endMessage);
+            closeAllClients();
+            return;
+        }
+
+        broadcastStateToAll();
+    }
+
+    private synchronized void closeAllClients() {
+        for (ClientHandler handler : new ArrayList<>(handlers)) {
+            handler.closeConnection();
         }
     }
 }

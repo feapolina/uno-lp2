@@ -98,7 +98,7 @@ SAIR
 | Fase | Descrição | Status |
 |------|-----------|--------|
 | **Fase 1 — Modelo** | Cartas, Baralho e Estado do Jogador | ✅ Base concluída / ajustes avançados pendentes |
-| **Fase 2 — Servidor** | GameServer, ClientHandler (threads), estado compartilhado | 🔄 Em andamento |
+| **Fase 2 — Servidor** | GameServer, ClientHandler (threads), estado compartilhado | ✅ Concluída no escopo atual |
 | **Fase 3 — Cliente** | Conexão ao servidor, loop de jogada, UI textual | 🔄 Em andamento |
 | **Fase 4 — Protocolo** | Mensagens estruturadas, validações e tratamento de erros | 🔄 Em andamento |
 
@@ -113,7 +113,7 @@ O estado da partida (`GameState`) é acessado por múltiplas threads de clientes
 Cada cliente abre uma conexão TCP com o servidor. O protocolo é baseado em texto simples (uma mensagem por linha) para facilitar a depuração.
 
 ### Gerência de Tempo
-Cada jogador tem um tempo limite por turno. Um `ScheduledExecutorService` no servidor gerencia o timeout e aplica a penalidade automaticamente (comprar cartas) se o jogador não agir a tempo.
+Cada jogador tem um tempo limite por turno. O servidor aplica timeout por turno no `ClientHandler` e penaliza automaticamente com compra de carta quando não há ação no tempo esperado.
 
 ---
 
@@ -124,3 +124,5 @@ Cada jogador tem um tempo limite por turno. Um `ScheduledExecutorService` no ser
 - Comando `SAIR` com encerramento ordenado do cliente.
 - Tratamento básico de desconexão no servidor.
 - Validação de entrada no cliente antes do envio ao servidor.
+- Timeout de turno com penalização automática (compra de 1 carta).
+- Reenvio de estado (`TOPO`, `ATIVA`, `ATUAL`, `MAO`) após eventos relevantes para manter clientes sincronizados.

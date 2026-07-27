@@ -33,6 +33,8 @@ public final class GameState {
     private CardColor activeColor;
     private boolean started;
     private PlayerState winner;
+    private boolean aborted;
+    private String endReason;
 
     private GameState(List<String> playerNames, Random random) {
         Objects.requireNonNull(playerNames, "playerNames não pode ser nulo.");
@@ -49,6 +51,8 @@ public final class GameState {
         this.direction = 1;
         this.started = false;
         this.winner = null;
+        this.aborted = false;
+        this.endReason = null;
 
         dealInitialHands(playerNames);
         prepareInitialTopCard();
@@ -129,7 +133,7 @@ public final class GameState {
     public boolean isGameOver() {
         lock.lock();
         try {
-            return winner != null;
+            return winner != null || aborted;
         } finally {
             lock.unlock();
         }
@@ -139,6 +143,15 @@ public final class GameState {
         lock.lock();
         try {
             return winner;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public String getEndReason() {
+        lock.lock();
+        try {
+            return endReason;
         } finally {
             lock.unlock();
         }
@@ -316,6 +329,28 @@ public final class GameState {
     private void ensureStarted() {
         if (!started) {
             throw new IllegalStateException("A partida ainda não foi iniciada.");
+        }
+    }
+
+    public void abortGame(String reason) {
+        lock.lock();
+        try {
+            if (winner != null || aborted) {
+                return;
+            }
+
+            aborted = true;
+            endReason = (reason == null || reason.isBlank())
+                    ? "Partida encerrada pelo servidor."
+                    : reason;
+
+            // Libera possíveis threads bloqueadas aguardando vez.
+            for (PlayerState player : players) {
+                player.grantTurn();
+            }
+            turnUpdated.signalAll();
+        } finally {
+            lock.unlock();
         }
     }
 

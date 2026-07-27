@@ -13,6 +13,11 @@
   - servidor trata saída e notifica os demais jogadores.
 - Tratamento básico de desconexão:
   - quando restam menos de 2 jogadores conectados, a partida é encerrada.
+- Timeout de turno no servidor:
+  - se o jogador não agir dentro do tempo limite, compra 1 carta automaticamente;
+  - a vez avança e o estado é sincronizado com todos os clientes.
+- Sincronização explícita de estado entre clientes:
+  - após jogadas válidas, erros e timeout, servidor reenvia `TOPO`, `ATIVA`, `ATUAL` e `MAO`.
 - Validação de comandos no cliente antes de enviar ao servidor:
   - aceita `COMPRAR`, `SAIR` e `JOGAR <COR>:<VALOR> [COR_DECLARADA]`.
 - Ajuste no handshake do cliente:
@@ -35,9 +40,14 @@
 
 ### Fase 2 — Servidor
 
-- Implementar timeout de turno com penalização automática.
-- Implementar reconexão/reentrada de jogador.
-- Melhorar robustez para quedas durante vez ativa e sincronização de estado.
+- Concluída no escopo atual:
+  - `GameServer` + `ClientHandler` com threads por cliente e estado compartilhado;
+  - timeout de turno com penalização automática;
+  - tratamento de desconexão e encerramento ordenado da partida;
+  - sincronização de estado para todos os clientes após eventos de jogo.
+- Evoluções futuras (opcionais):
+  - reconexão/reentrada real de jogador;
+  - logs estruturados e telemetria de partidas.
 
 ### Fase 3 — Cliente
 
@@ -60,5 +70,5 @@
 
 ## Sugestão de divisão para os próximos integrantes
 
-1. Integrante A: timeout de turno + penalização automática no servidor.
-2. Integrante B: reconexão de jogador + melhorias de protocolo/mensageria.
+1. Integrante A: refinamento de protocolo e padronização de mensagens.
+2. Integrante B: reconexão de jogador e melhorias de UX no cliente.

@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Objects;
 
@@ -67,7 +68,18 @@ public final class ClientHandler implements Runnable {
                 }
                 sendLine("SUA_VEZ");
                 sendState();
-                String command = in.readLine();
+
+                String command;
+                try {
+                    socket.setSoTimeout(GameServer.TURN_TIMEOUT_SECONDS * 1000);
+                    command = in.readLine();
+                } catch (SocketTimeoutException timeout) {
+                    server.notifyTurnTimeout(this);
+                    continue;
+                } finally {
+                    socket.setSoTimeout(0);
+                }
+
                 if (command == null) {
                     shouldNotifyLeave = true;
                     leaveReason = playerName + " desconectou.";
@@ -80,12 +92,17 @@ public final class ClientHandler implements Runnable {
                     break;
                 }
             }
-
             if (game.isGameOver()) {
-                sendLine("FIM_JOGO " + game.getWinner().getPlayerName());
+                if (game.getWinner() != null) {
+                    sendLine("FIM_JOGO " + game.getWinner().getPlayerName());
+                } else {
+                    sendLine("FIM_JOGO_PARTIDA_ENCERRADA " + game.getEndReason());
+                }
             }
         } catch (IOException e) {
-            System.err.println("Erro de comunicação com jogador " + playerName + ": " + e.getMessage());
+            if (!"Socket closed".equalsIgnoreCase(e.getMessage())) {
+                System.err.println("Erro de comunicação com jogador " + playerName + ": " + e.getMessage());
+            }
         } finally {
             closeQuietly();
             if (shouldNotifyLeave && game != null && !game.isGameOver()) {
@@ -122,12 +139,20 @@ public final class ClientHandler implements Runnable {
                 throw new IllegalArgumentException("Comando desconhecido: " + commandLine);
             }
             sendLine("TUDO_BEM");
-            sendState();
+            server.broadcastStateToAll();
             return true;
         } catch (Exception e) {
             sendLine("ERRO " + e.getMessage());
+            server.broadcastStateToAll();
             return true;
         }
+    }
+
+    public void sendStateSnapshot() {
+        if (playerState == null) {
+            return;
+        }
+        sendLine("MAO " + Protocol.formatHand(playerState.getHandSnapshot()));
     }
 
     private void sendState() {
@@ -142,6 +167,10 @@ public final class ClientHandler implements Runnable {
 
     public void sendLine(String message) {
         out.println(message);
+    }
+
+    public void closeConnection() {
+        closeQuietly();
     }
 
     private void closeQuietly() {
