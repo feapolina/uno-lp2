@@ -1,5 +1,7 @@
 package client;
 
+import shared.Protocol;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,8 +12,6 @@ import static client.AnsiColors.BOLD;
 import static client.AnsiColors.BLUE;
 import static client.AnsiColors.CYAN;
 import static client.AnsiColors.GREEN;
-import static client.AnsiColors.MAGENTA;
-import static client.AnsiColors.RED;
 import static client.AnsiColors.RESET;
 import static client.AnsiColors.YELLOW;
 
@@ -33,14 +33,13 @@ public final class GameClient {
              PrintWriter socketOut = new PrintWriter(socket.getOutputStream(), true);
              BufferedReader consoleIn = new BufferedReader(new InputStreamReader(System.in))) {
 
+            socketOut.println(playerName);
+
             Thread readerThread = new Thread(() -> {
                 try {
                     String line;
                     while ((line = socketIn.readLine()) != null) {
                         System.out.println(AnsiFormatter.parse(formatServerMessage(line)));
-                        if (line.startsWith("ENTRAR_NOME")) {
-                            socketOut.println(playerName);
-                        }
                     }
                 } catch (IOException e) {
                     System.err.println("Conexão encerrada: " + e.getMessage());
@@ -54,10 +53,45 @@ public final class GameClient {
                 if (input.isBlank()) {
                     continue;
                 }
-                socketOut.println(input.trim());
+
+                String normalized = input.trim();
+                if (!isValidCommand(normalized)) {
+                    System.out.println(AnsiFormatter.parse("[red]Comando inválido. Use COMPRAR, SAIR ou JOGAR <COR>:<VALOR> [COR_DECLARADA].[/red]"));
+                    continue;
+                }
+
+                socketOut.println(normalized);
+                if (normalized.equalsIgnoreCase("SAIR")) {
+                    break;
+                }
             }
         } catch (IOException e) {
             System.err.println("Falha ao conectar no servidor: " + e.getMessage());
+        }
+    }
+
+    private static boolean isValidCommand(String commandLine) {
+        if (commandLine.equalsIgnoreCase("COMPRAR") || commandLine.equalsIgnoreCase("SAIR")) {
+            return true;
+        }
+
+        if (!commandLine.toUpperCase().startsWith("JOGAR ")) {
+            return false;
+        }
+
+        String[] tokens = commandLine.split("\\s+");
+        if (tokens.length < 2 || tokens.length > 3) {
+            return false;
+        }
+
+        try {
+            Protocol.parseCard(tokens[1]);
+            if (tokens.length == 3) {
+                Protocol.parseColor(tokens[2]);
+            }
+            return true;
+        } catch (IllegalArgumentException ex) {
+            return false;
         }
     }
 
@@ -78,6 +112,9 @@ public final class GameClient {
             return "[magenta]" + line + "[/magenta]";
         }
         if (line.startsWith("AGUARDANDO")) {
+            return "[yellow]" + line + "[/yellow]";
+        }
+        if (line.startsWith("SAINDO")) {
             return "[yellow]" + line + "[/yellow]";
         }
         if (line.startsWith("SUA_VEZ")) {

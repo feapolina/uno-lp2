@@ -39,6 +39,10 @@ public final class ClientHandler implements Runnable {
         return playerId;
     }
 
+    public String getPlayerName() {
+        return playerName;
+    }
+
     public void setGame(GameState game) {
         this.game = Objects.requireNonNull(game);
     }
@@ -49,6 +53,8 @@ public final class ClientHandler implements Runnable {
 
     @Override
     public void run() {
+        boolean shouldNotifyLeave = false;
+        String leaveReason = null;
         try {
             out.println("BEM_VINDO " + playerId);
             sendLine("NOME_JOGADOR " + playerName);
@@ -63,9 +69,16 @@ public final class ClientHandler implements Runnable {
                 sendState();
                 String command = in.readLine();
                 if (command == null) {
+                    shouldNotifyLeave = true;
+                    leaveReason = playerName + " desconectou.";
                     break;
                 }
-                processCommand(command.trim());
+                boolean keepPlaying = processCommand(command.trim());
+                if (!keepPlaying) {
+                    shouldNotifyLeave = true;
+                    leaveReason = playerName + " saiu da partida.";
+                    break;
+                }
             }
 
             if (game.isGameOver()) {
@@ -75,10 +88,13 @@ public final class ClientHandler implements Runnable {
             System.err.println("Erro de comunicação com jogador " + playerName + ": " + e.getMessage());
         } finally {
             closeQuietly();
+            if (shouldNotifyLeave && game != null && !game.isGameOver()) {
+                server.notifyPlayerLeft(this, leaveReason);
+            }
         }
     }
 
-    private void processCommand(String commandLine) {
+    private boolean processCommand(String commandLine) {
         try {
             if (commandLine.equalsIgnoreCase("COMPRAR")) {
                 List<Card> drawn = game.drawCards(playerId, 1);
@@ -96,13 +112,21 @@ public final class ClientHandler implements Runnable {
                 }
                 game.playCard(playerId, card, declaredColor);
                 server.broadcast("ATUALIZACAO " + playerName + " jogou " + Protocol.formatCard(card) + ".");
+                if (playerState.cardsInHand() == 1) {
+                    server.broadcast("ATUALIZACAO " + playerName + " gritou UNO!");
+                }
+            } else if (commandLine.equalsIgnoreCase("SAIR")) {
+                sendLine("SAINDO Até logo!");
+                return false;
             } else {
                 throw new IllegalArgumentException("Comando desconhecido: " + commandLine);
             }
             sendLine("TUDO_BEM");
             sendState();
+            return true;
         } catch (Exception e) {
             sendLine("ERRO " + e.getMessage());
+            return true;
         }
     }
 

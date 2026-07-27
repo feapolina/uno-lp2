@@ -1,89 +1,64 @@
 # Pendências do Projeto UNO-LP2
 
-## O que já foi feito
+## Status atual (27/07/2026)
 
-- Modelo de cartas completo:
-  - `src/model/Card.java`
-  - `src/model/CardColor.java`
-  - `src/model/CardValue.java`
-- Implementação do baralho UNO padrão:
-  - `src/model/Deck.java`
-  - distribuição de mãos iniciais aleatória
-  - compra de cartas
-  - contagem de cartas restantes
-- Estado do jogador com concorrência:
-  - `src/model/PlayerState.java`
-  - exclusão mútua na mão de cartas
-  - controle básico de turno com `Semaphore`
-- Estado global da partida:
-  - `src/model/GameState.java`
-  - baralho de compra e monte de descarte
-  - lógica de turno, direção e efeitos de cartas
-  - reposição do baralho de compra a partir do descarte
-- Integração servidor/cliente:
-  - `src/server/GameServer.java`
-  - `src/server/ClientHandler.java`
-  - `src/client/GameClient.java`
-  - `src/shared/Protocol.java`
-- Interface de cliente com cores ANSI e formato em português.
-- Notas de implementação em `notes/nota-1.md` a `notes/nota-4.md`.
+### Implementado recentemente
 
-## O que ainda está pendente
+- Regra de `WILD_DRAW_FOUR` no `GameState`:
+  - bloqueia jogada quando o jogador ainda possui carta da cor ativa.
+- Notificação de `UNO` no servidor:
+  - ao ficar com 1 carta, é enviada atualização para todos os clientes.
+- Suporte a comando `SAIR`:
+  - cliente encerra de forma ordenada;
+  - servidor trata saída e notifica os demais jogadores.
+- Tratamento básico de desconexão:
+  - quando restam menos de 2 jogadores conectados, a partida é encerrada.
+- Validação de comandos no cliente antes de enviar ao servidor:
+  - aceita `COMPRAR`, `SAIR` e `JOGAR <COR>:<VALOR> [COR_DECLARADA]`.
+- Ajuste no handshake do cliente:
+  - nome enviado imediatamente ao conectar.
+
+### Base já existente no projeto
+
+- Modelo de cartas completo (`Card`, `CardColor`, `CardValue`).
+- Baralho UNO padrão (`Deck`) com compra e distribuição de mão inicial.
+- Estado de jogador concorrente (`PlayerState`) com proteção da mão.
+- Estado global da partida (`GameState`) com turno, direção e efeitos principais.
+- Comunicação cliente/servidor com protocolo textual (`GameServer`, `ClientHandler`, `GameClient`, `Protocol`).
+
+## Pendências que ainda faltam
 
 ### Fase 1 — Modelo
 
-- `GameState` precisa completar regras do UNO:
-  - validação de `WILD_DRAW_FOUR` apenas quando não há alternativa legal
-  - regras de compra/skip em cadeias de efeitos quando múltiplas cartas são jogadas
-  - lógica de `UNO` (notificação de quando o jogador fica com uma carta)
-- suporte de descarte e compra para construção de partidas reais com mais de 2 jogadores.
+- Completar regras avançadas do UNO (ex.: desafios e variações de efeitos encadeados).
+- Revisar cenários extremos de compra/monte para partidas longas.
 
 ### Fase 2 — Servidor
 
-- robustez de conexão:
-  - tratamento de cliente desconectado durante a partida
-  - reentrada de jogador ou encerramento ordenado da partida
-- controle de timeout de turno e penalização automática.
-- sincronização do estado entre clientes quando um jogador joga fora de turno ou falha.
-- logs do servidor em português e com contexto de jogo.
+- Implementar timeout de turno com penalização automática.
+- Implementar reconexão/reentrada de jogador.
+- Melhorar robustez para quedas durante vez ativa e sincronização de estado.
 
 ### Fase 3 — Cliente
 
-- interface mais amigável:
-  - exibir mãos com separação clara
-  - mostrar status do jogo em blocos e com legendas
-  - menu de ajuda persistente e comandos claros
-- suportar saída ordenada (`SAIR`) e reconexão.
-- tratamento de entrada inválida no próprio cliente antes de enviar ao servidor.
+- Melhorar UI textual (blocos de status mais claros e melhor organização da mão).
+- Implementar ajuda persistente e mensagens guiadas.
+- Suporte a reconexão no cliente.
 
 ### Fase 4 — Protocolo
 
-- protocolo ainda é texto simples e precisa de refinamento:
-  - mensagens de atualização mais estruturadas
-  - consistência entre `TOPO`, `ATIVA`, `ATUAL` e `MAO`
-  - remoção de tokens internos em inglês no log do servidor
-- serialização de cartas e cores já está em português, mas ainda pode ser melhorada para UX.
+- Padronizar melhor as mensagens (`TOPO`, `ATIVA`, `ATUAL`, `MAO`, `ATUALIZACAO`).
+- Evoluir protocolo para mensagens mais estruturadas (com menos ambiguidade).
 
 ### Testes e qualidade
 
-- falta de testes automatizados de unidade e integração.
-- nenhuma validação de cenário extremo:
-  - baralho acabando repetidamente
-  - tentativa de jogar carta inválida
-  - jogador comprando carta sem desistir
-- documentação de uso e instruções não atualizada no `README.md`.
+- Criar testes automatizados (unidade e integração).
+- Cobrir cenários de erro e concorrência:
+  - jogada inválida fora de turno;
+  - baralho esgotando repetidamente;
+  - desconexão durante jogada.
 
-## Pendências específicas do passo a passo
+## Sugestão de divisão para os próximos integrantes
 
-- Fase 1 — Modelo: ainda não concluída completamente. O baralho e o estado básico existem, mas faltam regras completas do UNO e tratamento de mão/monte avançado.
-- Fase 2 — Servidor: está implementado um servidor inicial, mas ainda falta o controle de jogo mais robusto e a gestão de threads para tempo limite.
-- Fase 3 — Cliente: existe cliente funcional, mas a UI ainda não está completa e precisa de conversão de estado para apresentação mais moderna.
-- Fase 4 — Protocolo: já há um protocolo básico, mas o projeto precisa de mensagens melhor definidas e tratamento de erros mais consistente.
-
-## Recomendações para próximos passos
-
-1. Priorizar a validação das regras do UNO no `GameState`.
-2. Implementar timeouts e tratamento de desconexão no servidor.
-3. Melhorar a apresentação do cliente com blocos de estado e cores consistentes.
-4. Adicionar testes unitários para `Deck`, `PlayerState`, `GameState` e protocolo.
-5. Atualizar `README.md` com instruções de uso em português e exemplos de comando.
+1. Integrante A: timeout de turno + penalização automática no servidor.
+2. Integrante B: reconexão de jogador + melhorias de protocolo/mensageria.

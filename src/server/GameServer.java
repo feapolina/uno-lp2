@@ -11,7 +11,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Random;
 
 public final class GameServer {
@@ -90,6 +89,18 @@ public final class GameServer {
     public synchronized void broadcast(String message) {
         for (ClientHandler handler : handlers) {
             handler.sendLine(message);
+        }
+    }
+
+    public synchronized void notifyPlayerLeft(ClientHandler disconnectedHandler, String reason) {
+        handlers.remove(disconnectedHandler);
+        if (reason != null && !reason.isBlank()) {
+            System.out.println(reason);
+            broadcast("ATUALIZACAO " + reason);
+        }
+
+        if (handlers.size() < 2) {
+            broadcast("FIM_JOGO_PARTIDA_ENCERRADA Jogadores insuficientes para continuar.");
         }
     }
 }

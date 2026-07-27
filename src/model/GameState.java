@@ -7,7 +7,6 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -27,7 +26,6 @@ public final class GameState {
     private final List<PlayerState> players;
     private final ReentrantLock lock;
     private final Condition turnUpdated;
-    private final Semaphore turnFinished;
 
     private int currentPlayerIndex;
     private int direction;
@@ -47,7 +45,6 @@ public final class GameState {
         this.players = new ArrayList<>(playerNames.size());
         this.lock = new ReentrantLock(true);
         this.turnUpdated = lock.newCondition();
-        this.turnFinished = new Semaphore(0, true);
         this.currentPlayerIndex = 0;
         this.direction = 1;
         this.started = false;
@@ -167,6 +164,10 @@ public final class GameState {
                 throw new IllegalStateException("Não é a vez do jogador " + playerId + ".");
             }
 
+            if (card.getValue() == CardValue.WILD_DRAW_FOUR && hasColorAlternativeForWildDrawFour(current)) {
+                throw new IllegalStateException("Coringa compra quatro só pode ser jogado quando não há carta da cor ativa na mão.");
+            }
+
             if (!card.canPlayOn(topCard, activeColor)) {
                 throw new IllegalStateException("Carta " + card + " não pode ser jogada sobre " + topCard + " com cor ativa " + activeColor + ".");
             }
@@ -207,6 +208,18 @@ public final class GameState {
         } finally {
             lock.unlock();
         }
+    }
+
+    private boolean hasColorAlternativeForWildDrawFour(PlayerState player) {
+        for (Card handCard : player.getHandSnapshot()) {
+            if (handCard.isWild()) {
+                continue;
+            }
+            if (handCard.getColor() == activeColor) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void applyCardEffect(Card card, CardColor declaredColor) {
