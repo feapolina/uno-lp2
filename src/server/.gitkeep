@@ -1,0 +1,6 @@
+# Pacote: server
+# Conteúdo futuro (Fase 2):
+#   - GameServer.java       → abre o ServerSocket e aceita conexões
+#   - ClientHandler.java    → Runnable executado em thread separada por cliente
+#   - GameState.java        → estado centralizado e sincronizado da partida
+#   - TurnManager.java      → controla o turno e aplica timeout de jogada

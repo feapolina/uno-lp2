@@ -1,0 +1,5 @@
+# Pacote: shared
+# Conteúdo futuro (Fase 4):
+#   - Message.java          → classe base para mensagens do protocolo
+#   - MessageType.java      → enum com os tipos de mensagem (PLAY_CARD, DRAW, UNO!, etc.)
+#   - Protocol.java         → utilitários para serializar/desserializar mensagens em texto
