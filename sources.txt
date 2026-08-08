@@ -1,0 +1,13 @@
+﻿C:\Users\Usuário\Downloads\uno-lp2-duno\uno-lp2-duno\src\client\AnsiColors.java
+C:\Users\Usuário\Downloads\uno-lp2-duno\uno-lp2-duno\src\client\AnsiFormatter.java
+C:\Users\Usuário\Downloads\uno-lp2-duno\uno-lp2-duno\src\client\ConsoleUI.java
+C:\Users\Usuário\Downloads\uno-lp2-duno\uno-lp2-duno\src\client\GameClient.java
+C:\Users\Usuário\Downloads\uno-lp2-duno\uno-lp2-duno\src\model\Card.java
+C:\Users\Usuário\Downloads\uno-lp2-duno\uno-lp2-duno\src\model\CardColor.java
+C:\Users\Usuário\Downloads\uno-lp2-duno\uno-lp2-duno\src\model\CardValue.java
+C:\Users\Usuário\Downloads\uno-lp2-duno\uno-lp2-duno\src\model\Deck.java
+C:\Users\Usuário\Downloads\uno-lp2-duno\uno-lp2-duno\src\model\GameState.java
+C:\Users\Usuário\Downloads\uno-lp2-duno\uno-lp2-duno\src\model\PlayerState.java
+C:\Users\Usuário\Downloads\uno-lp2-duno\uno-lp2-duno\src\server\ClientHandler.java
+C:\Users\Usuário\Downloads\uno-lp2-duno\uno-lp2-duno\src\server\GameServer.java
+C:\Users\Usuário\Downloads\uno-lp2-duno\uno-lp2-duno\src\shared\Protocol.java
