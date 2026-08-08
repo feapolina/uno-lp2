@@ -55,10 +55,21 @@
 - Implementar ajuda persistente e mensagens guiadas.
 - Suporte a reconexão no cliente.
 
-### Fase 4 — Protocolo
+### Fase 4 — Protocolo (Artur)
 
 - Padronizar melhor as mensagens (`TOPO`, `ATIVA`, `ATUAL`, `MAO`, `ATUALIZACAO`).
 - Evoluir protocolo para mensagens mais estruturadas (com menos ambiguidade).
+
+### Fase 4 — Protocolo (✅ CONCLUÍDO)
+
+- [x] Protocolo refinado utilizando String Tokenizada (separador `;`).
+- [x] Mensagens de atualização estruturadas (métodos `buildMessage` e `parseMessage`).
+- [x] Consistência garantida com as constantes exatas: `TOPO`, `ATIVA`, `ATUAL` e `MAO`.
+- [x] Remoção de tokens internos em inglês no log do servidor via mapas de tradução nativos.
+- [x] Serialização de cartas e cores traduzida para o português para melhor UX no terminal.
+
+## Pendências específicas do passo a passo
+- Fase 4 — Protocolo: Concluída. A classe `Protocol.java` agora centraliza os comandos e a formatação das mensagens. Falta apenas as outras classes do projeto adotarem seu uso.
 
 ### Testes e qualidade
 

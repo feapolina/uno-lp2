@@ -13,6 +13,33 @@ import java.util.StringJoiner;
 
 public final class Protocol {
 
+    // ---------------------------------------------------------
+    // 1. CONSTANTES DE REDE (COMANDOS E SEPARADOR)
+    // ---------------------------------------------------------
+    
+    public static final String SEPARATOR = ";";
+
+    // Comandos do Servidor -> Cliente (Eventos e Atualizações exatas da Pendência)
+    public static final String SALA_JOIN_SUCCESS = "SALA_JOIN_SUCCESS";
+    public static final String MSG_MAO = "MAO";       // Atualiza a mão do jogador
+    public static final String MSG_TOPO = "TOPO";     // Carta no topo do descarte
+    public static final String MSG_ATIVA = "ATIVA";   // Cor ativa (necessário quando jogam um Coringa)
+    public static final String MSG_ATUAL = "ATUAL";   // Nome do jogador do turno atual
+    public static final String EVENTO_INFO = "EVENTO_INFO";
+    public static final String EVENTO_ERRO = "EVENTO_ERRO";
+    public static final String FIM_JOGO = "FIM_JOGO";
+
+    // Comandos do Cliente -> Servidor (Ações do Jogador)
+    public static final String CMD_ENTRAR_SALA = "ENTRAR_SALA";
+    public static final String CMD_JOGAR = "JOGAR";
+    public static final String CMD_COMPRAR = "COMPRAR";
+    public static final String CMD_UNO = "UNO";
+    public static final String CMD_SAIR = "SAIR";
+
+    // ---------------------------------------------------------
+    // 2. DICIONÁRIOS DE TRADUÇÃO (CARTAS)
+    // ---------------------------------------------------------
+
     private static final Map<String, CardColor> COLOR_ALIASES = new HashMap<>();
     private static final Map<String, CardValue> VALUE_ALIASES = new HashMap<>();
     private static final Map<CardColor, String> COLOR_NAMES_PT = new HashMap<>();
@@ -96,6 +123,38 @@ public final class Protocol {
     private Protocol() {
         // utilitário estático
     }
+
+    // ---------------------------------------------------------
+    // 3. UTILITÁRIOS DE CONSTRUÇÃO DE MENSAGENS (SOCKET)
+    // ---------------------------------------------------------
+
+    /**
+     * Monta uma string de protocolo. Ex: buildMessage(CMD_JOGAR, "VERMELHO:CINCO")
+     * Retorna: "JOGAR;VERMELHO:CINCO"
+     */
+    public static String buildMessage(String command, String... arguments) {
+        StringJoiner joiner = new StringJoiner(SEPARATOR);
+        joiner.add(command);
+        for (String arg : arguments) {
+            joiner.add(arg);
+        }
+        return joiner.toString();
+    }
+
+    /**
+     * Desmonta a mensagem recebida pelo Socket em partes.
+     * Retorna um array onde o índice 0 é o comando e os subsequentes são os argumentos.
+     */
+    public static String[] parseMessage(String rawMessage) {
+        if (rawMessage == null || rawMessage.trim().isEmpty()) {
+            return new String[0];
+        }
+        return rawMessage.split(SEPARATOR);
+    }
+
+    // ---------------------------------------------------------
+    // 4. MÉTODOS ORIGINAIS (FORMATAÇÃO E PARSER DE CARTAS)
+    // ---------------------------------------------------------
 
     public static String formatCard(Card card) {
         Objects.requireNonNull(card, "card não pode ser nulo.");
