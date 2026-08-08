@@ -1,263 +1,175 @@
-# UNO-LP2 — UNO multiplayer com Threads e Sockets
+# 🃏 UNO-LP2 — Clone do Jogo UNO com Servidor Multithreaded
 
-Projeto acadêmico de Linguagem de Programação II. A implementação foi mantida em **Java puro**, sem bibliotecas externas, e segue a ideia do documento **“Passo a Passo do Projeto de LP2”** com a solução mais simples possível.
-
-## Equipe
-
-- Felipe José de Medeiros Melo
-- Felipe Cavalcanti Apolinário
-- João Lucas Silva Acioli
-- Jose Artur Soares Afreu
-- Gabriel Rafa Martins Freire
-
-## O que o projeto demonstra
-
-- servidor TCP central com `ServerSocket`;
-- uma `Thread` por conexão/jogador;
-- até **4 salas simultâneas**;
-- uma `Thread` para cada sala (`Room implements Runnable`);
-- estado da partida protegido com `ReentrantLock`;
-- controle de turno sem espera ocupada com `Semaphore`;
-- protocolo textual tokenizado por `;`;
-- timeout de turno de **15 segundos** por padrão;
-- timer global da partida de **15 minutos** por padrão;
-- tratamento de saída e queda de conexão;
-- cliente textual e cliente Swing simples.
-
-Os recursos de concorrência usados são os mesmos tipos de mecanismos presentes nos exemplos fornecidos em aula: `Thread`, `Runnable`, `synchronized`, `Semaphore`, `ReentrantLock`, sockets e `ScheduledExecutorService`.
+> Projeto acadêmico desenvolvido para a disciplina de **Linguagem de Programação II**.
+> Arquitetura: **Servidor Multithreaded Centralizado** com comunicação via Sockets TCP.
 
 ---
 
-## Arquitetura
+## 👥 Equipe:
+
+| Integrante |
+|------------|
+| Felipe José de Medeiros Melo |
+| Felipe Cavalcanti Apolinário |
+| João Lucas Silva Acioli |
+| Jose Artur Soares Afreu |
+| Gabriel Rafa Martins Freire |
+
+---
+
+## 🎯 Objetivos do Projeto
+
+Implementar uma versão multijogador do clássico jogo de cartas **UNO**, explorando na prática os seguintes conceitos da disciplina:
+
+- **Comunicação via Sockets** - troca de mensagens entre cliente e servidor via TCP/IP
+- **Sincronização de Threads** - controle de acesso concorrente ao estado do jogo (`synchronized`, `wait/notify`, `ReentrantLock`)
+- **Consistência de Estado** - garantia de que todos os clientes enxergam o mesmo estado da partida
+- **Gerência de Tempo** - timeouts de jogada e controle de turno
+
+---
+
+## 🏗️ Arquitetura
 
 ```text
-                         GameServer
-                             |
-                        RoomManager
-                 _________|___________
-                |         |           |
-             SALA1      SALA2       ... até 4
-            (Thread)    (Thread)
-               |            |
-        GameState +      GameState +
-        ClientHandlers   ClientHandlers
-          /      \          /      \
-      Socket    Socket   Socket    Socket
-      Cliente   Cliente  Cliente   Cliente
+Cliente  ──── TCP Socket ────▶  Servidor Central
+Cliente  ──── TCP Socket ────▶  (uma Thread por cliente)
+Cliente  ──── TCP Socket ────▶  (estado da partida compartilhado)
 ```
 
-### Classes principais
+O servidor atua como árbitro central: valida todas as jogadas, mantém o estado da partida e retransmite atualizações para todos os clientes conectados.
+
+---
+
+## 📁 Estrutura do Projeto
 
 ```text
-src/
-├── model/
-│   ├── Card.java
-│   ├── CardColor.java
-│   ├── CardValue.java
-│   ├── Deck.java
-│   ├── PlayerState.java
-│   └── GameState.java
-├── server/
-│   ├── GameServer.java
-│   ├── RoomManager.java
-│   ├── Room.java
-│   └── ClientHandler.java
-├── shared/
-│   └── Protocol.java
-├── client/
-│   ├── GameClient.java       # terminal
-│   ├── ConsoleUI.java
-│   ├── ClientMain.java       # Swing
-│   ├── GameWindow.java
-│   └── ServerListener.java
-└── tests/
-    ├── ProtocolSelfTest.java
-    ├── DeckSelfTest.java
-    ├── GameStateSelfTest.java
-    └── GameStateEdgeSelfTest.java
+uno-lp2/
+├── README.md
+├── .gitignore
+└── src/
+    ├── client/          # Código do cliente (UI, envio de comandos)
+    ├── server/          # Código do servidor (motor do jogo, threads)
+    ├── shared/          # Protocolo de comunicação (mensagens via socket)
+    └── model/           # Modelo de domínio (cartas, baralho, estado do jogador)
 ```
 
 ---
 
-## Compilar
+## 🚀 Como Compilar e Executar
 
-**Requisito:** JDK 11 ou superior.
+> **Requisito:** JDK 11+ instalado. Nenhum gerenciador de dependências é necessário.
 
-Na raiz do projeto:
+### Compilar tudo de uma vez
 
 ```bash
+# Na raiz do projeto
 find src -name "*.java" -print > sources.txt
 javac -d out @sources.txt
 ```
 
-O projeto não usa Maven, Gradle, JSON externo ou qualquer dependência adicional.
-
----
-
-## Executar o servidor
+> Em alguns ambientes pode ser necessário compilar com release explícito:
 
 ```bash
-java -cp out server.GameServer <porta> [timeout-turno-segundos] [duracao-partida-minutos]
+javac --release 25 -d out @sources.txt
 ```
 
-Exemplo padrão:
+### Executar o Servidor
 
 ```bash
-java -cp out server.GameServer 5000
+java -cp out server.GameServer <porta> <numero-de-jogadores> [timeout-segundos]
 ```
 
-Isso usa:
-
-- 15 s por turno;
-- 15 min por partida;
-- até 4 salas simultâneas.
-
-Para testes, os timers podem ser alterados. `0` desativa o timer correspondente:
+Exemplos:
 
 ```bash
-java -cp out server.GameServer 5000 0 0
+# Com timeout padrão (10s)
+java -cp out server.GameServer 5000 2
+
+# Sem timeout de turno (evita avanço automático)
+java -cp out server.GameServer 5000 2 0
 ```
 
----
-
-## Cliente de terminal
+### Executar o Cliente
 
 ```bash
-java -cp out client.GameClient localhost 5000 Ana
+java -cp out client.GameClient <endereço-do-servidor> <porta> <nome>
 ```
 
-Ao conectar, escolha uma das opções:
-
-```text
-CRIAR 2
-```
-
-O servidor mostrará o código, por exemplo `SALA1`. O outro jogador usa:
-
-```text
-ENTRAR SALA1
-```
-
-A partida inicia automaticamente quando a sala atinge a quantidade definida. Essa é a alternativa mais simples prevista no passo a passo (“criador inicia **ou** sala atinge o limite”).
-
-### Comandos durante a partida
+### Comandos do Cliente
 
 ```text
 COMPRAR
-JOGAR VERMELHO:CINCO
-JOGAR PRETO:CORINGA AZUL
-JOGAR VERMELHO:CINCO UNO
-JOGAR PRETO:CORINGA AZUL UNO
-DORMIU
+JOGAR <COR>:<VALOR> [COR_DECLARADA]
 SAIR
 ```
 
-A declaração de `UNO` é enviada junto da jogada que deixa o jogador com uma carta. Isso evita criar uma segunda janela de tempo e segue a alternativa descrita no projeto de fazer o UNO simultaneamente à jogada.
+---
 
-Se o jogador esquecer, o próximo jogador pode usar `DORMIU` antes de encerrar seu próprio turno; o infrator compra +2.
+## 🗺️ Roadmap de Fases
+
+| Fase | Descrição | Status |
+|------|-----------|--------|
+| **Fase 1 — Modelo** | Cartas, Baralho e Estado do Jogador | ✅ Base concluída / ajustes avançados pendentes |
+| **Fase 2 — Servidor** | GameServer, ClientHandler (threads), estado compartilhado | ✅ Concluída no escopo atual |
+| **Fase 3 — Cliente** | Conexão ao servidor, loop de jogada, UI textual | ✅ Concluída no escopo atual |
+| **Fase 4 — Protocolo** | Mensagens estruturadas, validações e tratamento de erros | ✅ Concluída no escopo atual |
 
 ---
 
-## Cliente Swing
+## 📐 Conceitos Aplicados
 
-O Swing foi mantido propositalmente simples para não desviar o foco da disciplina.
+### Sincronização de Threads
+O estado da partida (`GameState`) é acessado por múltiplas threads de clientes simultaneamente. Usamos blocos `synchronized`, `ReentrantLock` e `Semaphore` para garantir atomicidade nas operações críticas (jogar carta, comprar carta, passar a vez).
+
+### Comunicação via Sockets
+Cada cliente abre uma conexão TCP com o servidor. O protocolo é baseado em texto simples (uma mensagem por linha) com separação por `;` (classe `Protocol`) para facilitar a depuração e manter consistência.
+
+### Gerência de Tempo
+Cada jogador tem um tempo limite por turno. O servidor aplica timeout por turno no `ClientHandler` e penaliza automaticamente com compra de carta quando não há ação no tempo esperado.
+
+---
+
+## ✅ Atualizações Recentes
+
+- Validação de `WILD_DRAW_FOUR` no modelo (impede jogada ilegal quando há carta da cor ativa).
+- Notificação de `UNO` quando o jogador fica com 1 carta.
+- Comando `SAIR` com encerramento ordenado do cliente.
+- Tratamento básico de desconexão no servidor.
+- Validação de entrada no cliente antes do envio ao servidor.
+- Timeout de turno com penalização automática (compra de 1 carta).
+- Reenvio de estado (`TOPO`, `ATIVA`, `ATUAL`, `MAO`) após eventos relevantes para manter clientes sincronizados.
+
+---
+
+## 🧪 Testes Automatizados (sem framework externo)
+
+Os testes ficam em `src/tests` e podem ser executados direto com `java`.
+
+### Executar todos os testes
 
 ```bash
-java -cp out client.ClientMain localhost 5000 Ana
+# Na raiz do projeto
+find src -name "*.java" -print > sources.txt
+javac -d out @sources.txt
+
+java -cp out tests.ProtocolSelfTest
+java -cp out tests.DeckSelfTest
+java -cp out tests.GameStateSelfTest
 ```
 
-A janela mostra:
+### O que esses testes cobrem
 
-- sala;
-- jogador da vez;
-- topo do descarte;
-- cor ativa;
-- mão;
-- eventos recebidos do servidor;
-- campo para envio dos mesmos comandos do cliente textual.
-
-A leitura do servidor ocorre em `ServerListener`, e as atualizações da tela usam `SwingUtilities.invokeLater()`.
-
----
-
-## Regras implementadas
-
-- baralho UNO padrão de 108 cartas;
-- 7 cartas iniciais por jogador;
-- jogada por mesma cor, mesmo valor ou coringa;
-- `SKIP`;
-- `REVERSE` (em 2 jogadores funciona como `SKIP`);
-- `DRAW_TWO`;
-- `WILD` com escolha de cor;
-- `WILD_DRAW_FOUR` com escolha de cor e bloqueio quando existe carta da cor ativa na mão;
-- reposição do monte de compra usando o descarte, preservando a carta do topo;
-- vitória ao zerar a mão;
-- estado final das mãos enviado no encerramento;
-- `UNO` e `DORMIU` (+2);
-- timeout de turno com compra automática de 1 carta;
-- timeout global de partida;
-- encerramento da sala se um jogador sair/desconectar durante a partida.
-
----
-
-## Como a consistência é garantida
-
-O **servidor é a única fonte de verdade**. O cliente apenas solicita ações.
-
-`GameState` valida a jogada e protege alterações do estado compartilhado com `ReentrantLock`. A mão de cada jogador também possui um lock próprio. O `Semaphore` de `PlayerState` bloqueia a thread do jogador até sua vez sem usar busy wait.
-
-O `Deck` não precisa ter um segundo mecanismo de sincronização independente porque todas as compras e reposições que alteram o baralho durante a partida ocorrem dentro do lock de `GameState`. Isso mantém a solução menor sem perder segurança.
-
----
-
-## Protocolo
-
-As mensagens usam **String Tokenizada**, como proposto no passo a passo:
-
-```text
-CRIAR_SALA;Ana;2
-ENTRAR_SALA;SALA1;Beto
-JOGAR;VERMELHO:CINCO
-JOGAR;PRETO:CORINGA;AZUL;UNO
-COMPRAR
-DORMIU
-```
-
-Atualizações do servidor incluem:
-
-```text
-MAO;...
-TOPO;...
-ATIVA;...
-ATUAL;...
-SUA_VEZ
-ATUALIZACAO;...
-ERRO;...
-TEMPO_ESGOTADO;...
-FIM_JOGO;...
-```
-
----
-
-## Testes automáticos
-
-```bash
-java -ea -cp out tests.ProtocolSelfTest
-java -ea -cp out tests.DeckSelfTest
-java -ea -cp out tests.GameStateSelfTest
-java -ea -cp out tests.GameStateEdgeSelfTest
-```
-
-Os testes cobrem protocolo, composição do baralho, fluxo básico, regras de ação, `WILD_DRAW_FOUR`, validação de coringa, penalidade sem troca de turno e liberação das threads quando há vencedor.
-
-Além desses testes unitários simples, o projeto foi validado com testes de integração usando sockets reais para:
-
-- duas salas simultâneas;
-- isolamento entre salas;
-- comando inválido seguido de nova tentativa no mesmo turno;
-- timeout de turno;
-- queda de conexão;
-- limite de quatro salas;
+- `ProtocolSelfTest`:
+    - serialização e parse de mensagens do protocolo;
+    - compatibilidade com comando legado separado por espaço;
+    - round-trip de carta e mão.
+- `DeckSelfTest`:
+    - tamanho e composição do baralho UNO padrão (108 cartas);
+    - regras básicas de jogabilidade de cartas.
+- `GameStateSelfTest`:
+    - estado inicial da partida;
+    - avanço de turno após compra;
+    - fluxo simples de jogar carta (quando possível) ou comprar.
 - `DORMIU` e penalidade +2;
 - partida completa até `FIM_JOGO` em dois e três clientes;
 - quatro partidas completas simultâneas (8 clientes);
