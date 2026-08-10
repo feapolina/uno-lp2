@@ -95,6 +95,42 @@ java -cp out server.GameServer 5000 2 0
 java -cp out client.GameClient <endereço-do-servidor> <porta> <nome>
 ```
 
+### Interface gráfica (Swing)
+
+O projeto tambem possui cliente grafico em Swing.
+
+```bash
+java -cp out client.ClientMain <endereco-do-servidor> <porta> <nome>
+```
+
+Exemplo com dois jogadores:
+
+```bash
+# Terminal 1 (servidor)
+java -cp out server.GameServer 5000 0 0
+
+# Terminal 2 (Ana - grafico)
+java -cp out client.ClientMain localhost 5000 Ana
+
+# Terminal 3 (Beto - grafico)
+java -cp out client.ClientMain localhost 5000 Beto
+```
+
+Fluxo dentro da interface:
+
+- Jogador Ana: clicar em **Criar sala** e informar quantidade de jogadores (ex.: 2).
+- Jogador Beto: clicar em **Entrar em sala** e digitar o codigo recebido por Ana (ex.: SALA1).
+- Durante a partida, usar o campo de comando com entradas como:
+    - `JOGAR AMARELO:SETE`
+    - `COMPRAR`
+    - `DORMIU`
+    - `SAIR`
+
+Observacoes:
+
+- Se aparecer "Endereco ja em uso", troque a porta (5001, 5002, ... ) no servidor e nos clientes.
+- Se ocorrer `HeadlessException`, o ambiente nao tem suporte grafico ativo; nesse caso use `client.GameClient` (CLI).
+
 ### Comandos do Cliente
 
 ```text
