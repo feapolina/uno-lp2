@@ -85,6 +85,7 @@ public final class Room implements Runnable {
         }
 
         int playerId = pendingClients.size();
+        // Registra o jogador na sala enquanto a partida ainda não começou.
         PendingClient client = new PendingClient(socket, in, out, name, playerId);
         pendingClients.add(client);
 

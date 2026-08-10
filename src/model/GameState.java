@@ -306,6 +306,7 @@ public final class GameState {
      *  - WILD_DRAW_FOUR: true → próximo compra 4 e perde a vez (avança 2).
      */
     private boolean applyCardEffect(Card card, CardColor declaredColor) {
+        // Coloca a carta jogada no topo do descarte para formar a nova base da rodada.
         discardPile.addFirst(card);
         topCard = card;
 
@@ -354,6 +355,7 @@ public final class GameState {
      * partir do jogador atual).
      */
     private void applyDrawPenalty(int cardsToDraw) {
+        // Cartas como DRAW_TWO e WILD_DRAW_FOUR penalizam o próximo jogador.
         int penalizedIndex = indexAfter(currentPlayerIndex, 1);
         PlayerState penalized = players.get(penalizedIndex);
 
@@ -371,6 +373,7 @@ public final class GameState {
 
     /** Avança o turno normalmente (+1 na direção atual) e notifica. */
     private void advanceTurn() {
+        // Move o turno para o próximo jogador conforme a direção atual.
         currentPlayerIndex = indexAfter(currentPlayerIndex, 1);
         players.get(currentPlayerIndex).grantTurn();
     }

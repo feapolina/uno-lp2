@@ -6,7 +6,10 @@ import java.util.Objects;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.ReentrantLock;
 
-/** Estado simples e thread-safe de um jogador. */
+/**
+ * Estado simples e thread-safe de um jogador.
+ * Guarda a mão do jogador, o identificador e a permissão para agir no turno atual.
+ */
 public final class PlayerState {
 
     private final int playerId;

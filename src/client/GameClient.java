@@ -11,7 +11,10 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Arrays;
 
-/** Cliente textual simples para o UNO-LP2. */
+/**
+ * Cliente textual do UNO-LP2.
+ * Mantém o estado da partida localmente e conversa com o servidor via protocolo de texto.
+ */
 public final class GameClient {
 
     private static volatile String currentTop = "N/A";
@@ -24,6 +27,9 @@ public final class GameClient {
     private GameClient() {
     }
 
+    /**
+     * Ponto de entrada do cliente console. Recebe host, porta e nome do jogador.
+     */
     public static void main(String[] args) {
         if (args.length != 3) {
             System.err.println("Uso: java client.GameClient <host> <porta> <nome>");
@@ -37,9 +43,11 @@ public final class GameClient {
         try (BufferedReader consoleIn = new BufferedReader(new InputStreamReader(System.in))) {
             boolean again = true;
             while (again) {
+                // Antes de começar outra rodada, limpa as informações antigas da tela.
                 resetLocalState();
                 iniciarSessao(host, port, playerName, consoleIn);
 
+                // Pergunta se o jogador quer repetir o fluxo para outra partida.
                 System.out.print(AnsiColors.BOLD + AnsiColors.CYAN
                         + "Deseja entrar em outra partida? (S/N): " + AnsiColors.RESET);
                 String answer = consoleIn.readLine();
@@ -51,6 +59,9 @@ public final class GameClient {
         }
     }
 
+    /**
+     * Reinicia as variáveis locais antes de iniciar outra rodada.
+     */
     private static void resetLocalState() {
         serverRunning = true;
         currentTop = "N/A";
@@ -61,6 +72,9 @@ public final class GameClient {
         ConsoleUI.clearScreen();
     }
 
+    /**
+     * Abre uma sessão com o servidor, faz o handshake de lobby e passa a controlar a partida.
+     */
     private static void iniciarSessao(String host, int port, String playerName,
                                       BufferedReader consoleIn) {
         try (Socket socket = new Socket(host, port);
@@ -115,6 +129,7 @@ public final class GameClient {
                     continue;
                 }
 
+                // Garante que o jogador só envie comandos quando for realmente a sua vez.
                 if (!normalized.equalsIgnoreCase("SAIR")
                         && !playerName.equals(currentPlayer)) {
                     lastEventMessage = AnsiColors.YELLOW
@@ -138,6 +153,9 @@ public final class GameClient {
         }
     }
 
+    /**
+     * Faz a troca inicial de mensagens com o servidor para criar ou entrar em uma sala.
+     */
     private static boolean performLobbyHandshake(BufferedReader socketIn,
                                                  PrintWriter socketOut,
                                                  BufferedReader consoleIn,
@@ -198,6 +216,9 @@ public final class GameClient {
         return false;
     }
 
+    /**
+     * Atualiza o estado local do cliente com base nas mensagens recebidas do servidor.
+     */
     private static void processServerMessage(String line, String playerName) {
         String[] parts = Protocol.parseMessage(line);
         if (parts.length == 0) {
@@ -240,6 +261,9 @@ public final class GameClient {
         }
     }
 
+    /**
+     * Valida a sintaxe dos comandos digitados pelo jogador antes de enviá-los ao servidor.
+     */
     private static boolean isValidCommand(String commandLine) {
         if (commandLine.equalsIgnoreCase("COMPRAR")
                 || commandLine.equalsIgnoreCase("DORMIU")

@@ -7,7 +7,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Arrays;
 
-/** Thread do cliente dedicada somente a receber mensagens do servidor. */
+/**
+ * Thread responsável por escutar mensagens vindas do servidor.
+ * Ela atualiza a interface do cliente sempre que chega uma nova informação.
+ */
 public final class ServerListener implements Runnable {
 
     private final BufferedReader in;

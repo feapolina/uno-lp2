@@ -12,7 +12,10 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.util.function.Consumer;
 
-/** Interface Swing propositalmente simples: estado, mão e campo de comando. */
+/**
+ * Interface gráfica simples em Swing para o cliente do UNO.
+ * Exibe estado da partida, mão do jogador, eventos e um campo para comandos.
+ */
 public final class GameWindow extends JFrame {
 
     private static final long serialVersionUID = 1L;
@@ -26,6 +29,9 @@ public final class GameWindow extends JFrame {
     private final JTextField commandField = new JTextField();
     private final JButton sendButton = new JButton("Enviar");
 
+    /**
+     * Cria a janela com painéis para estado, mão, eventos e envio de comandos.
+     */
     public GameWindow(String playerName, Consumer<String> commandSender) {
         super("UNO-LP2 - " + playerName);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

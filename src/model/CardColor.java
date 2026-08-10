@@ -2,9 +2,7 @@ package model;
 
 /**
  * Cores possíveis de uma carta do UNO.
- *
- * RED, BLUE, GREEN e YELLOW são usadas em cartas numéricas e de ação.
- * BLACK é exclusiva das cartas coringa (WILD e WILD_DRAW_FOUR).
+ * As cartas normais usam cores reais, enquanto os coringas usam a cor preta.
  */
 public enum CardColor {
 

@@ -14,7 +14,10 @@ import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Objects;
 
-/** Thread dedicada à comunicação com um jogador durante uma partida. */
+/**
+ * Thread dedicada à comunicação com um jogador durante uma partida.
+ * Cada instância representa um jogador conectado e recebe seus comandos de turno.
+ */
 public final class ClientHandler implements Runnable {
 
     private enum CommandResult {
@@ -66,11 +69,13 @@ public final class ClientHandler implements Runnable {
 
         try {
             while (!game.isGameOver()) {
+                // Espera até que o servidor conceda o turno para este jogador.
                 playerState.waitForTurn();
                 if (game.isGameOver()) {
                     break;
                 }
 
+                // Informa ao cliente que chegou a sua vez e envia o estado atual da partida.
                 sendLine(Protocol.buildMessage(Protocol.MSG_SUA_VEZ));
                 sendState();
 
@@ -90,6 +95,8 @@ public final class ClientHandler implements Runnable {
                             return;
                         }
 
+                        // Processa o comando do jogador e decide se o turno termina, continua
+                        // ou se o jogador sai da partida.
                         CommandResult result = processCommand(command.trim());
                         if (result == CommandResult.LEAVE) {
                             shouldNotifyLeave = true;

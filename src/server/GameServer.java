@@ -11,7 +11,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 /**
- * Servidor central multithreaded.
+ * Servidor central multithreaded do UNO-LP2.
  *
  * Cada conexão recebe uma Thread curta de lobby. Depois do handshake, o socket
  * é entregue a uma Room, que gerencia a partida e cria uma Thread de
@@ -67,6 +67,7 @@ public final class GameServer {
             System.out.println("Até " + RoomManager.MAX_ROOMS + " salas simultâneas.");
 
             while (true) {
+                // Aceita novas conexões e cria uma thread de lobby para cada cliente.
                 Socket socket = serverSocket.accept();
                 new Thread(() -> handleLobby(socket),
                         "Lobby-" + socket.getRemoteSocketAddress()).start();
@@ -81,6 +82,7 @@ public final class GameServer {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
+            // Envia a primeira mensagem de boas-vindas para o cliente no lobby.
             out.println(Protocol.buildMessage(
                     Protocol.MSG_LOBBY,
                     "Use CRIAR_SALA;<nome>;<2-8> ou ENTRAR_SALA;<codigo>;<nome>"));

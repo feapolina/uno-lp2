@@ -2,11 +2,7 @@ package model;
 
 /**
  * Valores (tipos) possíveis de uma carta do UNO.
- *
- * Divisão:
- * - Numéricas (ZERO–NINE): cartas comuns sem efeito especial.
- * - Ação colorida (SKIP, REVERSE, DRAW_TWO): afetam o fluxo do jogo.
- * - Coringa (WILD, WILD_DRAW_FOUR): sem cor (BLACK), jogáveis sempre.
+ * A enum organiza cartas comuns, cartas de ação e coringas em categorias claras.
  */
 public enum CardValue {
 

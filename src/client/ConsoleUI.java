@@ -1,15 +1,24 @@
 package client;
 
-
 import static client.AnsiColors.*;
 
+/**
+ * Responsável por renderizar a interface textual do jogo no terminal.
+ * É usada pelo cliente console para exibir o estado da partida de forma organizada.
+ */
 public class ConsoleUI {
 
+    /**
+     * Limpa a tela do terminal antes de redesenhar o quadro do jogo.
+     */
     public static void clearScreen() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
     }
 
+    /**
+     * Desenha o quadro principal com status da mesa, mão do jogador e comandos disponíveis.
+     */
     public static void renderBoard(String playerName, String currentPlayer, String topCard, String activeColor, String hand, String lastMessage) {
         clearScreen();
         

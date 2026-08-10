@@ -10,12 +10,18 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-/** Cliente Swing mínimo, sem dependências externas. */
+/**
+ * Ponto de entrada do cliente gráfico em Swing.
+ * Responsável por abrir a conexão com o servidor e iniciar a interface do jogador.
+ */
 public final class ClientMain {
 
     private ClientMain() {
     }
 
+    /**
+     * Leitura dos argumentos de execução: host, porta e nome do jogador.
+     */
     public static void main(String[] args) {
         if (args.length != 3) {
             System.err.println("Uso: java client.ClientMain <host> <porta> <nome>");
@@ -29,6 +35,10 @@ public final class ClientMain {
         SwingUtilities.invokeLater(() -> connect(host, port, name));
     }
 
+    /**
+     * Abre a conexão com o servidor, pergunta se o jogador cria ou entra em sala
+     * e inicia a janela do jogo.
+     */
     private static void connect(String host, int port, String name) {
         try {
             Socket socket = new Socket(host, port);

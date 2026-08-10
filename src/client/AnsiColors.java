@@ -1,5 +1,9 @@
 package client;
 
+/**
+ * Define os códigos ANSI usados para colorir mensagens no terminal.
+ * Essas constantes ajudam a deixar a interface textual mais legível em aula.
+ */
 public final class AnsiColors {
     public static final String RESET = "\u001B[0m";
     public static final String BOLD = "\u001B[1m";

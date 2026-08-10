@@ -11,6 +11,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
 
+/**
+ * Define o protocolo de comunicação entre cliente e servidor.
+ * Centraliza os comandos, a formatação de mensagens e a conversão entre cartas e strings.
+ */
 public final class Protocol {
 
     // ---------------------------------------------------------
@@ -146,6 +150,8 @@ public final class Protocol {
      * Retorna: "JOGAR;VERMELHO:CINCO"
      */
     public static String buildMessage(String command, String... arguments) {
+        // Monta uma mensagem de rede no formato comando;arg1;arg2...
+        // que será enviada por socket entre cliente e servidor.
         StringJoiner joiner = new StringJoiner(SEPARATOR);
         joiner.add(command);
         for (String arg : arguments) {
@@ -160,6 +166,7 @@ public final class Protocol {
      */
     public static String[] parseMessage(String rawMessage) {
         if (rawMessage == null || rawMessage.trim().isEmpty()) {
+            // Mensagens vazias são tratadas como sem conteúdo para não quebrar o fluxo.
             return new String[0];
         }
         String trimmed = rawMessage.trim();

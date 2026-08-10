@@ -3,6 +3,10 @@ package client;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Converte tags simples como [bold red] em códigos ANSI.
+ * Essa classe é usada para formatar mensagens de saída sem depender de bibliotecas externas.
+ */
 public final class AnsiFormatter {
 
     private static final Map<String, String> TAGS = new HashMap<>();
@@ -21,11 +25,16 @@ public final class AnsiFormatter {
     private AnsiFormatter() {
     }
 
+    /**
+     * Interpreta uma string com tags de estilo e retorna a versão colorida.
+     */
     public static String parse(String text) {
         if (text == null || text.isEmpty()) {
             return text;
         }
 
+        // Percorre a string em busca de blocos de marcação como [bold red].
+        // Quando encontra uma tag, substitui pela sequência ANSI correspondente.
         StringBuilder result = new StringBuilder();
         int index = 0;
         while (index < text.length()) {
